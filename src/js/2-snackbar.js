@@ -5,50 +5,57 @@ import { refs } from './storage';
 const makePromise = event => {
   event.preventDefault();
 
-  // Declare selected properly
-  const selected = document.querySelector('input[name="state"]:checked');
+  const selected = refs.form.elements['state'].value;
+  const delay = Number(refs.form.elements['delay'].value);
 
-  // Get the delay value and convert it to a number
-  const delay = document.querySelector('[name="delay"]');
-  const delayInput = Number(delay.value);
-
-  if (!selected) {
-    iziToast.warning({
-      title: 'Caution',
-      message: 'You forgot important data!',
-      position: 'topRight',
-      timeout: 5000,
-    });
+  if (isNaN(delay) || delay < 0) {
+    showWarningToast('Please enter a valid non-negative delay time!');
     return;
   }
 
-  // Create and execute the promise
-  new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (selected.value === 'fulfilled') {
-        resolve(`✅ Fulfilled promise in ${delayInput}ms`);
-      } else {
-        reject(`❌ Rejected promise in ${delayInput}ms`);
-      }
-    }, delayInput);
-  })
-    .then(message => {
-      iziToast.success({
-        title: 'Success',
-        message,
-        position: 'topRight',
-        timeout: 555000,
-      });
-    })
-    .catch(message => {
-      iziToast.error({
-        title: 'Error',
-        message,
-        position: 'topRight',
-        timeout: 5000,
-      });
-    });
+  if (!selected) {
+    showWarningToast('You forgot important data!');
+    return;
+  }
+
+  createPromise(delay, selected === 'fulfilled')
+    .then(showSuccessToast)
+    .catch(showErrorToast);
 };
 
-// Attach event listener to button
+const createPromise = (delay, isFulfilled) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      isFulfilled ? resolve(delay) : reject(delay);
+    }, delay);
+  });
+};
+
+const showSuccessToast = delay => {
+  iziToast.success({
+    title: 'Success',
+    message: `✅ Fulfilled promise in ${delay}ms`,
+    position: 'topRight',
+    timeout: 5000,
+  });
+};
+
+const showErrorToast = delay => {
+  iziToast.error({
+    title: 'Error',
+    message: `❌ Rejected promise in ${delay}ms`,
+    position: 'topRight',
+    timeout: 5000,
+  });
+};
+
+const showWarningToast = message => {
+  iziToast.warning({
+    title: 'Caution',
+    message,
+    position: 'topRight',
+    timeout: 5000,
+  });
+};
+
 refs.form.addEventListener('submit', makePromise);

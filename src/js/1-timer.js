@@ -4,14 +4,32 @@ import { refs, convertMs } from './storage';
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
-flatpickr(refs.input, refs.options);
+flatpickr(refs.input, {
+  enableTime: true,
+  time_24hr: true,
+  defaultDate: new Date(),
+  minuteIncrement: 1,
+  onClose: function (selectedDates) {
+    const selectedDate = selectedDates[0];
+    if (!selectedDate || selectedDate.getTime() <= Date.now()) {
+      iziToast.error({
+        title: 'Помилка!',
+        message: 'Будь ласка, виберіть дату в майбутньому.',
+        position: 'topRight',
+      });
+      refs.btn.setAttribute('disabled', true);
+    } else {
+      refs.btn.removeAttribute('disabled');
+    }
+  },
+});
 
 let countdownInterval;
 
 refs.btn.setAttribute('disabled', true);
 
 refs.btn.addEventListener('click', () => {
-  const selectedDate = refs.options.userSelectedDate;
+  const selectedDate = new Date(refs.input.value);
 
   if (!selectedDate || selectedDate.getTime() <= Date.now()) {
     refs.btn.setAttribute('disabled', true);
