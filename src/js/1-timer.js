@@ -4,13 +4,17 @@ import { refs, convertMs } from './storage';
 import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
+let selectedDate = null;
+let countdownInterval = null;
+
 flatpickr(refs.input, {
   enableTime: true,
   time_24hr: true,
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose: function (selectedDates) {
-    const selectedDate = selectedDates[0];
+    selectedDate = selectedDates[0];
+
     if (!selectedDate || selectedDate.getTime() <= Date.now()) {
       iziToast.error({
         title: 'Помилка!',
@@ -24,16 +28,11 @@ flatpickr(refs.input, {
   },
 });
 
-let countdownInterval;
-
 refs.btn.setAttribute('disabled', true);
 
 refs.btn.addEventListener('click', () => {
-  const selectedDate = new Date(refs.input.value);
-
-  if (!selectedDate || selectedDate.getTime() <= Date.now()) {
-    refs.btn.setAttribute('disabled', true);
-    return;
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
   }
 
   refs.btn.setAttribute('disabled', true);
@@ -46,11 +45,11 @@ refs.btn.addEventListener('click', () => {
 
     if (ms <= 0) {
       clearInterval(countdownInterval);
-      refs.days.textContent = '00';
-      refs.hours.textContent = '00';
-      refs.minutes.textContent = '00';
-      refs.seconds.textContent = '00';
-
+      refs.days.textContent =
+        refs.hours.textContent =
+        refs.minutes.textContent =
+        refs.seconds.textContent =
+          '00';
       refs.input.removeAttribute('disabled');
       return;
     }
